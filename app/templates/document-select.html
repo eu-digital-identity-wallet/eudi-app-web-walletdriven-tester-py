@@ -1,0 +1,484 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Sign documents</h1>
+  <p>Select files and configure signing options before proceeding.</p>
+</div>
+
+<div class="w-100" id="options-form">
+  <div class="select-doc-section">
+    <h3>Documents</h3>
+    <div class="blue-box" id="document-list-container">
+      <ul class="document-list" id="item-list"></ul>
+      {% if not received_files %}
+      <label class="btn common-btn secondary-btn">
+        <input type="file" name="upload" id="filename" style="display: none" onchange="updateDocumentsList(this)"/>
+        + Add Document
+      </label>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="select-doc-section">
+    <h3>Digest Algorithm</h3>
+    <div class="blue-box">
+      {% for algorithm in digest_algorithms %}
+      <label><input type="radio" name="digest_algorithm" value="{{ algorithm.oid }}" onchange="saveDigestAlgorithm(this.value)"/>{{ algorithm.name }}</label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="select-doc-section" id="signature-options" hidden>
+    <h3>Options for <span id="selected-document-name"></span></h3>
+    <div class="select-document blue-box">
+      <!-- Preview -->
+      <div class="select-document-column">
+        <div class="preview-area" id="previewArea" style="background-color:white">
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="select-document-column">
+        <div class="options-form-group">
+          <div class="options-step">
+            <div class="step-number">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="options-content">
+            <p class="legend" style="margin-bottom:5px; font-weight: bold">Container</p>
+            <label><input type="radio" name="container" value="No" onchange="onChangeContainer(this.value)"/>No</label>
+            <label><input type="radio" name="container" value="ASiC-S" onchange="onChangeContainer(this.value)"/>ASiC-S</label>
+            <label><input type="radio" name="container" value="ASiC-E" onchange="onChangeContainer(this.value)"/>ASiC-E</label>
+          </div>
+        </div>
+
+        <div class="options-form-group">
+          <div class="options-step">
+            <div class="step-number">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="options-content">
+            <p class="legend" style="margin-bottom:5px; font-weight: bold">Signature Format</p>
+            <label><input type="radio" id="XAdES" name="signature_format" value="X" onchange="onChangeSignatureFormat(this.value)" required/>XAdES</label>
+            <label><input type="radio" id="CAdES" name="signature_format" value="C" onchange="onChangeSignatureFormat(this.value)"/>CAdES</label>
+            <label><input type="radio" id="PAdES" name="signature_format" value="P" onchange="onChangeSignatureFormat(this.value)"/>PAdES</label>
+            <label><input type="radio" id="JAdES" name="signature_format" value="J" onchange="onChangeSignatureFormat(this.value)"/>JAdES</label>
+          </div>
+        </div>
+
+        <div class="options-form-group">
+          <div class="options-step">
+            <div class="step-number">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="options-content">
+            <p class="legend" style="margin-bottom:5px; font-weight: bold">Packaging</p>
+            <label><input type="radio" id="enveloped"  name="packaging" value="ENVELOPED"  onchange="saveOption('packaging', this.value)"/>Enveloped</label>
+            <label><input type="radio" id="enveloping" name="packaging" value="ENVELOPING" onchange="saveOption('packaging', this.value)"/>Enveloping</label>
+            <label><input type="radio" id="detached"   name="packaging" value="DETACHED"   onchange="saveOption('packaging', this.value)"/>Detached</label>
+            <label><input type="radio" id="internally" name="packaging" value="INTERNALLY_DETACHED" onchange="saveOption('packaging', this.value)"/>Internally Detached</label>
+          </div>
+        </div>
+
+        <div class="options-form-group">
+          <div class="options-step">
+            <div class="step-number">4</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="options-content">
+            <p class="legend" style="margin-bottom:5px; font-weight: bold">Level</p>
+            <label><input type="radio" name="level" value="Ades-B-B"   onchange="saveOption('level', this.value)"/>BASELINE-B</label>
+            <label><input type="radio" name="level" value="Ades-B-T"   onchange="saveOption('level', this.value)"/>BASELINE-T</label>
+            <label><input type="radio" name="level" value="Ades-B-LT"  onchange="saveOption('level', this.value)"/>BASELINE-LT</label>
+            <label><input type="radio" name="level" value="Ades-B-LTA" onchange="saveOption('level', this.value)"/>BASELINE-LTA</label>
+          </div>
+        </div>
+
+        <button type="button" id="confirm-btn" class="btn common-btn secondary-btn" style="margin-top:10px" onclick="confirmDocumentOptions()">
+          Save Options
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-side-btn-container" id="submit-btn-container" hidden>
+    <button type="submit" id="submit-btn" class="btn common-btn primary-btn" onclick="handleSubmit()">
+      Continue
+    </button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+{% if received_files %}
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const predefinedFiles = {{ received_files | tojson }};
+
+    predefinedFiles.forEach(file => {
+      const byteChars = atob(file.data);
+      const byteArray = new Uint8Array([...byteChars].map(c => c.charCodeAt(0)));
+      const blob = new Blob([byteArray], { type: file.type });
+      const fileURL = URL.createObjectURL(blob);
+
+      documentStates.set(file.name, {
+        ...DEFAULT_OPTIONS,
+        file: null,
+        fileURL: fileURL,
+        fileType: file.type
+      });
+
+      const itemList = document.getElementById("item-list");
+      const li = document.createElement("li");
+      li.className = "document-list-item";
+      li.dataset.name = file.name;
+      li.innerHTML = `
+        <div class="document-list-item-name">
+          <i class="fa-regular fa-file"></i>
+          <span class="item-name">${file.name}</span>
+        </div>
+        <div class="document-list-item-options">
+          <span class="status-badge pending">Options needed</span>
+          <!-- No remove button for predefined files -->
+        </div>
+      `;
+      li.addEventListener("click", () => selectDocument(file.name));
+      itemList.appendChild(li);
+    });
+
+    document.getElementById("signature-options").hidden = false;
+    document.getElementById("submit-btn-container").hidden = true;
+    selectDocument(predefinedFiles[0].name);
+  });
+</script>
+{% endif %}
+<script>
+const documentStates = new Map();
+let selectedDocument = null;
+
+let digest_algorithm = null;
+function saveDigestAlgorithm(value) {
+  digest_algorithm = value;
+}
+
+const DEFAULT_OPTIONS = {
+    container:       "No",
+    signature_format: null,
+    packaging:        null,
+    level:           "Ades-B-B",
+    confirmed: 		  false,
+    file:			  null,
+    fileURL:          null,
+    fileType: 		  null
+};
+function saveOption(groupName, value) {
+    if (!selectedDocument) return;
+    const state = documentStates.get(selectedDocument);
+    if (state) state[groupName] = value;
+}
+
+function updateDocumentsList(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = "";
+
+	let fileURL;
+	if (file.type === "application/pdf") {
+    	fileURL = URL.createObjectURL(new Blob([file], { type: "application/pdf" }));
+	}
+	else{
+		fileURL = URL.createObjectURL(file);
+	}
+    documentStates.set(file.name, { ...DEFAULT_OPTIONS, file, fileURL, fileType: file.type });
+
+    const itemList = document.getElementById("item-list");
+    const li = document.createElement("li");
+    li.className = "document-list-item";
+    li.dataName=file.name;
+    li.dataset.name = file.name;
+    li.innerHTML = `
+        <div class="document-list-item-name">
+          <i class="fa-regular fa-file"></i>
+          <span class="item-name">${file.name}</span>
+        </div>
+        <div class="document-list-item-options">
+          <span class="status-badge pending">Options needed</span>
+          <button class="btn common-btn secondary-btn icon-btn" onclick="removeItem(this)">✕</button>
+        </div>
+    `;
+    li.addEventListener("click", (e) => {
+        if (e.target.classList.contains("icon-btn")) return;
+        selectDocument(file.name);
+    });
+    itemList.appendChild(li);
+
+    document.getElementById("signature-options").hidden = false;
+    document.getElementById("submit-btn-container").hidden = true;
+    selectDocument(file.name);
+}
+
+function removeItem(button) {
+    const li = button.closest(".document-list-item");
+    const filename = li.dataset.name;
+
+    documentStates.delete(filename);
+    li.remove();
+
+    const itemList = document.getElementById("item-list");
+    if (itemList.children.length === 0) {
+        document.getElementById("signature-options").hidden = true;
+        document.getElementById("submit-btn-container").hidden = true;
+        selectedDocument = null;
+        return;
+    }
+    if (selectedDocument === filename) {
+        const firstRemaining = itemList.children[0].dataset.name;
+        selectDocument(firstRemaining);
+    }
+
+    document.getElementById("submit-btn-container").hidden = !checkAllConfirmed();
+}
+
+function selectDocument(filename) {
+	// removes all other selected documents
+    document.querySelectorAll(".document-list-item").forEach(el =>
+        el.classList.remove("selected")
+    );
+	// 'selects' the document to change css
+    const el = document.querySelector(`[data-name="${CSS.escape(filename)}"]`);
+    if (el) el.classList.add("selected");
+
+    selectedDocument = filename;
+    document.getElementById("selected-document-name").innerText = filename;
+
+    const state = documentStates.get(filename);
+    loadOptionsPanel(state);
+
+    lockOptionsPanel(state.confirmed === true);
+    document.getElementById("signature-options").hidden = false;
+}
+
+function loadOptionsPanel(state) {
+    setRadio("container",        state.container);
+    setRadio("signature_format", state.signature_format);
+    setRadio("packaging",        state.packaging);
+    setRadio("level",            state.level);
+
+    if (state.container)       onChangeContainer(state.container, false);
+    if (state.signature_format) onChangeSignatureFormat(state.signature_format, false);
+
+    if (state.fileURL) {
+        showPreview(state);
+    }
+}
+
+function setRadio(groupName, value) {
+    document.querySelectorAll(`input[name="${groupName}"]`).forEach(r => {
+        r.checked = (r.value === value);
+    });
+}
+
+function onChangeContainer(value, resetChildren = true) {
+    if (resetChildren) {
+        deselectSignatureFormat();
+        deselectPackaging();
+    }
+	saveOption("container", value);
+
+    const isASiC = value === "ASiC-S" || value === "ASiC-E";
+    document.getElementById("PAdES").disabled = isASiC;
+    document.getElementById("JAdES").disabled = isASiC;
+    document.getElementById("XAdES").disabled = false;
+    document.getElementById("CAdES").disabled = false;
+}
+
+function deselectPackaging() {
+    ["enveloped", "enveloping", "detached", "internally"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.disabled) el.checked = false;
+    });
+}
+
+function deselectSignatureFormat() {
+    ["XAdES", "CAdES", "PAdES", "JAdES"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.disabled) el.checked = false;
+    });
+}
+
+function onChangeSignatureFormat(value, resetChildren = true) {
+    if (resetChildren) {
+        deselectPackaging();
+    }
+    saveOption("signature_format", value);
+
+    const form = document.getElementById("options-form");
+    const container = form.querySelector("input[name='container']:checked")?.value || "No";
+    const isASiC = container === "ASiC-S" || container === "ASiC-E";
+
+    if (value === "X") {
+        isASiC
+            ? setPackagingState(false, false, true,  false)
+            : setPackagingState(true,  true,  true,  true);
+    } else if (value === "C") {
+        isASiC
+            ? setPackagingState(false, false, true,  false)
+            : setPackagingState(false, true,  true,  false);
+    } else if (value === "P") {
+        setPackagingState(true, false, false, false);
+    } else if (value === "J") {
+        setPackagingState(false, true, true, false);
+    }
+}
+
+function setPackagingState(enveloped, enveloping, detached, internally) {
+    document.getElementById("enveloped").disabled  = !enveloped;
+    document.getElementById("enveloping").disabled = !enveloping;
+    document.getElementById("detached").disabled   = !detached;
+    document.getElementById("internally").disabled = !internally;
+}
+
+function showPreview(state) {
+    let type = state.fileType;
+    let fileURL = state.fileURL;
+
+    const previewArea = document.getElementById("previewArea");
+    previewArea.innerHTML = "";
+
+    if (type === "application/pdf") {
+        const embed = document.createElement("embed");
+        embed.style  = "height: 500px; width:100%; border: 1px solid #ccc; margin-top: 10px";
+        embed.src    = fileURL;
+        embed.type   = "application/pdf";
+        previewArea.appendChild(embed);
+    } else {
+        const isJSON = type === "application/json";
+        const isXML  = type === "application/xml";
+        fetch(fileURL)
+            .then(r => isJSON ? r.json() : r.text())
+            .then(data => {
+                previewArea.textContent = isJSON
+                    ? JSON.stringify(data, null, 4)
+                    : isXML
+                        ? new XMLSerializer().serializeToString(
+                            new DOMParser().parseFromString(data, type))
+                        : data;
+            });
+    }
+}
+
+function confirmDocumentOptions() {
+  if (!selectedDocument) return;
+  const state = documentStates.get(selectedDocument);
+	if (!state.container){
+		showToast("Please select a Container before confirming.", "error");
+		return;
+	}
+    if (!state.signature_format) {
+        showToast("Please select a Signature Format before confirming.", "error");
+        return;
+    }
+    if (!state.packaging) {
+        showToast("Please select a Packaging before confirming.", "error");
+        return;
+    }
+    if (!state.level) {
+        showToast("Please select a Level before confirming.", "error");
+        return;
+    }
+    saveOption("confirmed", true)
+    lockOptionsPanel(true);
+    markDocumentConfirmed(selectedDocument, true);
+    showToast(`Options confirmed for ${selectedDocument}`, "success");
+    document.getElementById("submit-btn-container").hidden = !checkAllConfirmed();
+}
+
+function lockOptionsPanel(lock) {
+    const form = document.getElementById("signature-options");
+    form.querySelectorAll("input[type='radio']").forEach(r => {
+        r.disabled = lock;
+    });
+    document.getElementById("confirm-btn").textContent  = lock ? "Saved" : "Save Options";
+    document.getElementById("confirm-btn").disabled     = lock;
+}
+
+function markDocumentConfirmed(filename, confirmed) {
+    const el = document.querySelector(`[data-name="${CSS.escape(filename)}"]`);
+    if (!el) return;
+
+	const badge = el.querySelector(".status-badge");
+	if (confirmed) {
+		badge.className = "status-badge success";
+		badge.textContent = "Options selected";
+	}
+	else if (!confirmed ) {
+        badge.className = "status-badge pending";
+		badge.textContent = "Options needed";
+    }
+}
+
+function checkAllConfirmed() {
+    if (documentStates.size === 0) return;
+    const allConfirmed = [...documentStates.values()].every(s => s.confirmed);
+    return allConfirmed;
+}
+
+async function submitAll() {
+	if(!checkAllConfirmed()){
+		showToast("The options of all documents were not confirmed.", "error");
+		return;
+	}
+
+    const formData = new FormData();
+
+    for (const [filename, state] of documentStates.entries()) {
+        const blob = await fetch(state.fileURL).then(r => r.blob());
+        if (state.file) {
+            formData.append("files", state.file, filename);
+        }
+        formData.append("options", JSON.stringify({
+            filename:         filename,
+            container:        state.container,
+            signature_format: state.signature_format,
+            packaging:        state.packaging,
+            level:            state.level
+        }));
+    }
+
+    formData.append("digest_algorithm", digest_algorithm);
+
+    try {
+        const response = await fetch("/tester/document/select", {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+        // Redirect on success
+        window.location.href = "/tester/credentials/retrieve";
+    } catch (err) {
+        console.error("Submit error:", err);
+        showToast("Error submitting documents. Please try again.", "error");
+    }
+}
+
+async function handleSubmit() {
+    const btn = document.getElementById("submit-btn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Submitting...`;
+
+    await submitAll();
+
+    btn.disabled = false;
+    btn.innerHTML = "Sign document";
+}
+
+function showToast(message, type = "info") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = `toast show ${type}`;
+    setTimeout(() => { toast.className = "toast"; }, 3000);
+}
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>EUDIW Wallet-Centric rQES</h1>
+  <p>
+    Welcome to the remote Qualified Electronic Signature component
+    wallet-centric backend server.
+  </p>
+</div>
+
+<h2>Available Endpoints</h2>
+<p>In this domain, it is made available a Relying Party Web Page supporting the Document Retrieval, a Signature Creation Application and Qualified Trust Service Provider composed by an Authorization Server and Resource Server.</p>
+
+<div class="all-services-container">
+  <div class="single-service-box gui">
+    <span class="badge">RP</span>
+    <p class="title">Document Retrieval Web Page</p>
+    <a href="{{rp_url}}">{{rp_url}}</a>
+  </div>
+  <div class="single-service-box gui">
+    <span class="badge">GUI</span>
+    <p class="title">Tester of Wallet-Centric rQES</p>
+    <a href="{{redirect_url}}">{{redirect_url}}</a>
+  </div>
+  <div class="single-service-box rest-api">
+    <span class="badge">SCA</span>
+    <p class="title">Signature Creation Application</p>
+    <ul>
+      <li>/credential/authorize</li>
+      <li>/signatures/signDoc</li>
+    </ul>
+  </div>
+  <div class="single-service-box rest-api">
+    <span class="badge">QTSP</span>
+    <p class="title">Qualified Trust Service Provider</p>
+    <ul>
+      <li>
+        Authorization Server
+        <ul>
+          <li>/oauth2/authorize</li>
+          <li>/oauth2/token</li>
+          <li>/oid4vp/callback</li>
+        </ul>
+      </li>
+      <li>
+        Resource server
+        <ul>
+          <li>/csc/v2/info</li>
+          <li>/csc/v2/signatures/signHash</li>
+          <li>/csc/v2/credentials/list</li>
+          <li>/csc/v2/credentials/info</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

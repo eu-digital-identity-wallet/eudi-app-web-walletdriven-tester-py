@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Delete certificate</h1>
+  <p>Successfully delete the certificate.</p>
+</div>
+
+<div>
+  <h3>Requested Certificate Deletion</h3>
+  <div class="https_request_container">
+    <pre>{{delete_request_url}}</pre>
+    <pre>Body: {{delete_request_body | tojson(indent=2)}}</pre>
+  </div>
+  <div class="right-side-btn-container">
+    <a class="btn common-btn primary-btn" href="{{ url_for('index.get_tester_home_page') }}">Home</a>
+  </div>
+</div>
+
+{% endblock %}

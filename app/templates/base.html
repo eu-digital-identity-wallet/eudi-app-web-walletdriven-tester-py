@@ -19,28 +19,7 @@
       href="{{ url_for('static', filename='images/favicon.gif') }}"
       type="image/gif"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/stylesheets/custom/custom_en_9.7.1.20.1679559965505.css') }}"
-      media="all"
-      type="text/css"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/stylesheets/custom/personalized.css') }}"
-      media="all"
-      type="text/css"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='fontawesome-free-5.15.4-web/css/fontawesome.min.css') }}"
-      type="text/css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
-    <script
+    <!--<script
       type="text/javascript"
       id="jqueryId"
       src="{{ url_for('static', filename='scripts/jquery/jquery-3.6.3.min.js') }}"
@@ -48,24 +27,9 @@
     ></script>
     <script
       type="text/javascript"
-      src="{{ url_for('static', filename='scripts/promiz/promiz-1.0.6.js') }}"
-      charset="UTF-8"
-    ></script>
-    <script
-      type="text/javascript"
-      src="{{ url_for('static', filename='scripts/html5shiv/html5shiv-3.7.3.js') }}"
-      charset="UTF-8"
-    ></script>
-    <script
-      type="text/javascript"
-      src="{{ url_for('static', filename='scripts/respond/respond-1.4.2.js') }}"
-      charset="UTF-8"
-    ></script>
-    <script
-      type="text/javascript"
       src="{{ url_for('static', filename='scripts/loc/loc_en_9.7.1.20.1679559965505.js') }}"
       charset="UTF-8"
-    ></script>
+    ></script>-->
 
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
@@ -73,83 +37,82 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/personalized.css') }}"
+      media="all"
+      type="text/css"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="referrer" content="no-referrer" />
-    <title>rQES Wallet-centric Wallet Tester</title>
+    <title>EUDIW rQES - Wallet Centric</title>
   </head>
 
-  <body id="responsive-main-nav1">
-    <div class="main container-fluid">
-      <header role="banner" class="main-header">
-        <div class="container">
-          <div class="row">
-            <nav
-              class="navbar navbar-expand-lg navbar-light"
-              style="padding-left: 60px; padding-right: 60px"
-            >
-              <div class="col-md-9">
-                <img
-                  src="{{ url_for('static', filename='images/ic-logo.svg') }}"
-                />
-              </div>
+  <body id="responsive-main-nav">
+    <div class="main">
+      <header role="banner" class="main-header shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-light">
+          <div class="container-fluid" id="header-container">
+            <a class="navbar-brand" href="/">
+              <img src="{{ url_for('static', filename='images/ic-logo.svg') }}" alt="Logo" height="50"/>
+            </a>
 
-              <div class="col-md-3">
-                <div
-                  class="collapse navbar-collapse"
-                  id="navbarSupportedContent"
-                >
-                  <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                      <a
-                        class="nav-link btn"
-                        href="{{ url_for('SCA.authentication') }}"
-                        >Home</a
-                      >
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </nav>
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Links -->
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+              <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                  <a class="nav-link common-btn secondary-btn px-3" href="{{ url_for('index.get_tester_home_page') }}">Home</a>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
+        </nav>
       </header>
 
-      <div role="main" class="container">
-        <div class="content height-div-parent">
-          {% block content %} {% endblock %}
-        </div>
+      <div role="main" class="w-100 mx-auto main-container">
+        {% block content %} {% endblock %}
       </div>
 
-      <footer id="footer-main">
-        <div class="row footer-row">
-          <div class="col-md-3 footer-image">
-            <div class="footer-column">
-              <a
+      <footer id="main-footer">
+        <div class="container-fluid">
+          <div class="row text-center text-md-start align-items-center">
+            <div
+              class="col-12 col-md-3 mb-3 mb-md-0 text-md-start col-md-3 footer-column"
+            >
+              <a class="d-block footer-column-a"
                 href="https://ec.europa.eu/digital-building-blocks/sites/display/EUDIGITALIDENTITYWALLET/EU+Digital+Identity+Wallet+Home"
                 target="_blank"
-                ><img
-                  src="{{ url_for('static', filename='images/logo.svg') }}"
-                  alt="Image 1"
-              /></a>
-              <small class="mt-2">2025.01.14-Demo (release 0.2.0)</small>
+                >Release 0.2.0
+              </a>
+
             </div>
-          </div>
-          <div class="col-md-3 footer-column-box">
-            <div class="footer-column">
+            <div class="col-12 col-md-3 mb-2 mb-md-0 footer-column">
               <a
+                class="d-block footer-column-a"
                 href="https://ec.europa.eu/digital-building-blocks/sites/display/EUDIGITALIDENTITYWALLET/EU+Digital+Identity+Wallet+Home"
                 target="_blank"
-                >About Us</a
+                >About</a
               >
             </div>
-          </div>
-          <div class="col-md-3 footer-column-box">
-            <div class="footer-column">
-              <a href="mailto:CNECT-EUDIW-SUPPORT@ec.europa.eu">Contact Us</a>
-            </div>
-          </div>
-          <div class="col-md-3 footer-column-box">
-            <div class="footer-column">
+            <div class="col-12 col-md-3 mb-2 mb-md-0 footer-column">
               <a
+                class="d-block footer-column-a"
+                href="mailto:CNECT-EUDIW-SUPPORT@ec.europa.eu"
+                >Contact</a
+              >
+            </div>
+            <div class="col-12 col-md-3 footer-column">
+              <a
+                class="d-block footer-column-a"
                 href="pdf/EU Digital Identity Wallet website_privacy statement.pdf"
                 target="_blank"
                 >Privacy Statement</a

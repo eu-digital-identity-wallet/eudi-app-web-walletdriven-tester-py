@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Delete certificate</h1>
+  <p>Select the certificate to delete and which authentication flow to use.</p>
+</div>
+
+<div>
+  <h3>List of Certificates</h3>
+  <div class="blue-box">
+    {% for credential_id in list_credentials_ids %}
+    <label class="auth_options_label">
+      <input type="radio" name="certificate-id" value="{{ credential_id }}" onclick="onSelectionChange()">
+      <div class="auth_options">{{ credential_id }}</div>
+    </label>
+    {% endfor %}
+  </div>
+</div>
+
+<input type="radio" name="scope" value="credential-deletion" checked hidden>
+
+{% include 'aux_templates/oauth-authentication-options.html' %}
+
+{% endblock %}

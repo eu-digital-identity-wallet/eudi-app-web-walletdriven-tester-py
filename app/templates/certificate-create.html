@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Create certificate</h1>
+  <p>Successfully authorized to create the certificate.</p>
+</div>
+
+<div>
+  <h3>Certificates Creation Request Preview</h3>
+  <div class="https_request_container">
+    <pre>{{create_credential_url}}</pre>
+    <pre>Body: {{create_credential_body | tojson(indent=2)}}</pre>
+  </div>
+</div>
+
+<div class="right-side-btn-container">
+  <a class="btn common-btn primary-btn" href="{{ url_for('credentials.create_credentials') }}">Create certificate</a>
+</div>
+{% endblock %}

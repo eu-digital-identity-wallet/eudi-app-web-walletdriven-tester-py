@@ -1,0 +1,27 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Certificate retrieval & authentication</h1>
+  <p>Select how you'd like to retrieve your signing certificate and authenticate with the Qualified Trust Service Provider.</p>
+</div>
+
+<div>
+  <h3>Certificate Retrieval</h3>
+  <div class="blue-box">
+    <label class="auth_options_label">
+      <input type="radio" name="scope" value="credential-creation" onchange="onSelectionChange()">
+      <div class="auth_options">
+        <span style="font-weight: 600;">Create new certificate</span><span>Generate a fresh signing certificate</span>
+      </div>
+    </label>
+    <label class="auth_options_label">
+      <input type="radio" name="scope" value="service" onchange="onSelectionChange()">
+      <div class="auth_options">
+        <span style="font-weight: 600;">Get list of certificates</span><span>Retrieve existing certificates associated with your identity</span>
+      </div>
+    </label>
+  </div>
+</div>
+
+{% include 'aux_templates/oauth-authentication-options.html' %}
+
+{% endblock %}

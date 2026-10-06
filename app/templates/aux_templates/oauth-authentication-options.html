@@ -1,0 +1,107 @@
+<div>
+  <h3>Authentication</h3>
+  <div class="blue-box">
+    <label class="auth_options_label">
+      <input type="radio" name="authentication-flow" value="same" onchange="onSelectionChange()">
+      <div class="auth_options">
+        <span style="font-weight: 600;">Same device flow</span>
+        <span>Authenticate on this device using your wallet app</span>
+      </div>
+    </label>
+    {% if cross_device_flow_supported %}
+    <label class="auth_options_label">
+      <input type="radio" name="authentication-flow" value="cross" onchange="onSelectionChange()">
+      <div class="auth_options">
+      <span style="font-weight: 600;">Cross device flow</span>
+        <span>Scan a QR code to authenticate from a different device</span>
+      </div>
+    </label>
+    {% endif %}
+    {% if test_form_supported %}
+    <label class="auth_options_label">
+      <input type="radio" name="authentication-flow" value="form" onchange="onSelectionChange()">
+      <div class="auth_options">
+        <span style="font-weight: 600;">Form login for tests</span>
+        <span>Authenticate on this device using your wallet app</span>
+      </div>
+    </label>
+    {% endif %}
+  </div>
+</div>
+<div>
+  <h3>Authorization Request Preview</h3>
+  <div class="https_request_container" id="https-request">
+    <span id="preview-placeholder" style="color: #999;">Select both options above to preview the request...</span>
+    <pre id="preview-content" style="display:none; white-space: pre-wrap; word-break: break-all;"></pre>
+  </div>
+  <div class="right-side-btn-container">
+    <button class="btn common-btn primary-btn" id="continue-btn" disabled onclick="onContinue()">Continue</button>
+  </div>
+</div>
+
+<script>
+  let authorizationRequestUrl = null;
+
+  const REQUIRES_CREDENTIAL_ID = {{ requires_credential_id | tojson }};
+
+  function onSelectionChange() {
+    const scope = document.querySelector('input[name="scope"]:checked');
+    const authenticationFlow = document.querySelector('input[name="authentication-flow"]:checked');
+    const credentialId = document.querySelector('input[name="certificate-id"]:checked');
+
+    if (!scope || !authenticationFlow) return;
+
+    if (REQUIRES_CREDENTIAL_ID) {
+      if (!credentialId) return;
+
+      fetchAuthorizationRequest(scope.value, authenticationFlow.value, credentialId.value);
+    } else {
+      fetchAuthorizationRequest(scope.value, authenticationFlow.value);
+    }
+  }
+
+  function fetchAuthorizationRequest(scope, authenticationFlow, credentialId) {
+    const previewContent = document.getElementById('preview-content');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    const continueBtn = document.getElementById('continue-btn');
+
+    previewPlaceholder.textContent = 'Loading...';
+    previewContent.style.display = 'none';
+    continueBtn.disabled = true;
+
+    const payload = {
+      scope: scope,
+      authenticationFlow: authenticationFlow,
+    };
+
+    if (REQUIRES_CREDENTIAL_ID) {
+      payload.credentialId = credentialId;
+    }
+
+    fetch("{{ url_for('auth.preview_authorization_request') }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      authorizationRequestUrl = data.redirectUrl;
+      previewPlaceholder.style.display = 'none';
+      previewContent.style.display = 'block';
+      previewContent.textContent = data.requestUrl;
+      continueBtn.disabled = false;
+    })
+    .catch(error => {
+      previewPlaceholder.textContent = 'Error loading request. Please try again.';
+      previewPlaceholder.style.display = 'block';
+      previewContent.style.display = 'none';
+      console.error('Error:', error);
+    });
+  }
+
+  function onContinue() {
+    if (authorizationRequestUrl) {
+      window.location.href = authorizationRequestUrl;
+    }
+  }
+</script>

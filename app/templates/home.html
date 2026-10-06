@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block content %}
+<div class="page-centered">
+    <h3>EUDI Wallet Reference Implementation</h3>
+    <h1>Welcome to the rQES Wallet Tester</h1>
+    <p style="margin-bottom: 30px">
+      This is a web application that allows users and developers to test the remote Qualified Electronic Signature functionality of
+      the EUDI Wallet.
+    </p>
+
+    {% if is_rp_request %}
+    <p style="margin-bottom: 30px">
+      Document signing request was received from a Relying Party.
+    </p>
+    {% endif %}
+
+    <form action="{{ url_for('documents_routes.get_document_select_page') }}" method="GET">
+      <button class="btn common-btn primary-btn" type="submit">Start Signing Documents</button>
+    </form>
+</div>
+{% endblock %}

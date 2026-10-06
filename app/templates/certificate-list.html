@@ -1,0 +1,64 @@
+{% extends 'base.html' %} {% block content %}
+<div>
+  <h1>Select Certificate</h1>
+  <p>Select one of certificates available to you in the Qualified Trust Provider Service to use for the signature. </p>
+</div>
+
+<div>
+<h3>Certificate List Request Preview</h3>
+<div class="https_request_container">
+  <pre>{{credential_list_url}}</pre>
+  <pre>Body: {{credential_list_body | tojson(indent=2)}}</pre>
+</div>
+</div>
+
+<div>
+  <h3>List of Certificates</h3>
+<div class="blue-box">
+  {% for credential_id in list_credentials_ids %}
+  <label class="auth_options_label">
+    <input type="radio" name="certificate-retrieval-option" value="{{ credential_id }}" onclick="changeCredentialId(this.value)">
+    <div class="auth_options">{{ credential_id }}</div>
+  </label>
+
+  {% endfor %}
+</div>
+</div>
+
+<div class="right-side-btn-container">
+  <button class="btn common-btn primary-btn" onclick="onClick()">
+    Continue
+  </button>
+</div>
+
+
+<script>
+  let selectedCredentialId = null;
+
+  function changeCredentialId(credentialId){
+    selectedCredentialId = credentialId;
+  }
+
+  function onClick(){
+    if (!selectedCredentialId) {
+        showToast("Please select a certificate before continuing.", "error");
+        return;
+    }
+
+    fetch("{{ url_for('credentials.select_credential') }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ credentialID: selectedCredentialId }),
+    })
+    .then((response) => {
+      window.location.href = "{{ url_for('documents_routes.get_document_hash_page') }}";
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+  }
+</script>
+
+{% endblock %}

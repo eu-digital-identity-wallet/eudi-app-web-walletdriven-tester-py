@@ -1,0 +1,26 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Authenticate</h1>
+  <p>Use the EUDI Wallet to complete OpenId4VP authentication and process with the document signing.</p>
+</div>
+
+{% if test_form_auth %}
+<div class="blue-box">
+  <form class="qtsp-authentication-form" action="{{ url_for('auth.login') }}" method="POST" enctype="multipart/form-data">
+    <div class="qtsp-authentication-form-field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" value="{{username}}">
+    </div>
+    <div class="qtsp-authentication-form-field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="text" value="{{password}}">
+    </div>
+    <button class="btn common-btn primary-btn" type="submit">Sign In</button>
+  </form>
+</div>
+{% else %}
+<div class="btn common-btn primary-btn">
+  <a style="color: white; text-decoration: none" href="{{ location }}">Go to EUDI Wallet</a>
+</div>
+{% endif %}
+{% endblock %}

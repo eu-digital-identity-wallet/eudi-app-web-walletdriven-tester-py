@@ -68,20 +68,75 @@ python -m pip install --upgrade pip
 Install Flask and other dependencies in virtual environment
 
 ```shell
-pip install -r app/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### Step 6: Configure the Application
 
-Copy \_config.py to config.py and modify the following configuration variables:
+> **Note:** By default, this service (Wallet Tester) authenticates in the QTSP Authorization Server using **OID4VP Same-Device flow**.
+> It can also be configured to support **cross-device flow** and **form-based login**.
 
-- **secret_key**: define a secure and random key
-- **service_url**: the base URL of the Wallet Tester
-- **AS**: the URL of the QTSP Authorization Server (AS)
-- **RS**: the URL of the QTSP Resource Server (RS)
-- **SCA**: the URL of the rQES External SCA Server
-- **oauth_client_id**: the client ID of the Wallet Tester in the QTSP AS
-- **oauth_client_secret**: the client secret of the Wallet Tester in the QTSP AS
+Update the configuration in `config.py` (located in `app/core`) or create a `.env` file based on `.env.sample`.
+
+#### 6.1 `config.py`
+
+- **ENV**: environment type (e.g., development, preproduction)
+- **SECRET_KEY**: REQUIRED - a secure, randomly generated key
+- **DOCUMENTS_UPLOAD_FOLDER**: REQUIRED - path to the folder where documents to be signed are stored
+- **SERVICE_URL**: REQUIRED - base URL of the service
+- **RP_URL**: REQUIRED - URL of a Relying Party (RP) supporting rQES document retrieval 
+- **AS_URL**: REQUIRED - URL of the QTSP Authorization Server (AS)
+- **RS_URL**: REQUIRED - URL of the QTSP Resource Server (RS)
+- **SCA_URL**: REQUIRED - URL of the SCA Service
+- **OAUTH_CODE_CHALLENGE_METHOD**: REQUIRED - PKCE code challenge method (e.g., S256)
+- **OAUTH_ADDITIONAL_SUPPORTED_OID4VP_FLOWS**: additional supported authentication methods (e.g., `test-form`, `cross-device`)
+
+- **OAUTH_CLIENT_ID**: REQUIRED - (Same-device flow) client ID registered in the QTSP AS
+- **OAUTH_CLIENT_SECRET**: REQUIRED - (Same-device flow) client secret registered in the QTSP AS
+- **OAUTH_REDIRECT_URL**: REQUIRED - (Same-device flow) redirect URI registered in the QTSP AS
+
+- **OAUTH_CROSS_DEVICE_FLOW_CLIENT_ID**: OPTIONAL - (Cross-device flow) client ID registered in the QTSP AS
+- **OAUTH_CROSS_DEVICE_FLOW_CLIENT_SECRET**: OPTIONAL - (Cross-device flow) client secret registered in the QTSP AS
+- **OAUTH_CROSS_DEVICE_FLOW_REDIRECT_URL**: OPTIONAL - (Cross-device flow) redirect URI registered in the QTSP AS
+
+- **OAUTH_TEST_FORM_CLIENT_ID**: OPTIONAL - (Form Login) client ID registered in the QTSP AS
+- **OAUTH_TEST_FORM_CLIENT_SECRET**: OPTIONAL - (Form Login) client secret registered in the QTSP AS
+- **OAUTH_TEST_FORM_REDIRECT_URL**: OPTIONAL - (Form Login) redirect URI registered in the QTSP AS
+- **OAUTH_USERNAME**: username for form login
+- **OAUTH_PASSWORD**: password for form login
+
+#### 6.2 `.env` File
+
+```
+FLASK_RUN_PORT=5000
+ENV=dev
+SECRET_KEY=
+
+DOCUMENTS_UPLOAD_FOLDER=app/documents
+SERVICE_URL=http://127.0.0.1:5000/tester
+
+RP_URL=
+AS_URL=
+RS_URL=
+SCA_URL=
+
+OAUTH_CODE_CHALLENGE_METHOD=S256
+OAUTH_ADDITIONAL_SUPPORTED_OID4VP_FLOWS='[test-form, cross-device]'
+
+OAUTH_CLIENT_ID=
+OAUTH_CLIENT_SECRET=
+OAUTH_REDIRECT_URL=http://127.0.0.1:5000/tester/oauth/login/code
+
+OAUTH_CROSS_DEVICE_FLOW_CLIENT_ID=
+OAUTH_CROSS_DEVICE_FLOW_CLIENT_SECRET=
+OAUTH_CROSS_DEVICE_FLOW_REDIRECT_URL=http://127.0.0.1:5000/tester/oauth2/callback
+
+OAUTH_TEST_FORM_CLIENT_ID=
+OAUTH_TEST_FORM_CLIENT_SECRET=
+OAUTH_TEST_FORM_REDIRECT_URL=http://127.0.0.1:5000/tester/oauth/login/code
+OAUTH_USERNAME=
+OAUTH_PASSWORD=
+```
 
 ### Step 7: Run the Application
 

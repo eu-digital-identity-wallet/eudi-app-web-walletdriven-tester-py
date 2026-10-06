@@ -1,0 +1,41 @@
+<div>
+  {% if document_content_type in ["text/plain", "application/json", "application/xml", "application/pdf"] %}
+      <br />
+      <iframe
+        id="viewer_{{ document_filename | replace('.', '_') }}"
+        height="500px"
+        width="100%"
+      ></iframe>
+  {% elif document_content_type in ["application/vnd.etsi.asic-s+zip", "application/vnd.etsi.asic-e+zip"] %}
+  <br /><em>ZIP files cannot be previewed. Please download.</em>
+  {% endif %}
+
+  <button class="btn common-btn secondary-btn" onclick="downloadPDF()">Download</button>
+</div>
+
+<script>
+
+
+  function downloadPDF(pdf) {
+    let document_signed_value = "{{ document_signed_value }}";
+    let document_content_type = "{{ document_content_type }}";
+    let document_filename = "{{ document_filename }}";
+    const linkSource = `data:${document_content_type};base64,${document_signed_value}`;
+    const downloadLink = document.createElement("a");
+    downloadLink.href = linkSource;
+    downloadLink.download = document_filename;
+    downloadLink.click();
+  }
+
+  function loadDocumentViewer() {
+    let document_signed_value = "{{ document_signed_value }}";
+    let document_content_type = "{{ document_content_type }}";
+    let document_filename = "{{ document_filename }}";
+    // Create a Blob object from the byte array
+    const linkSource = `data:${document_content_type};base64,${document_signed_value}`;
+    const viewerId = "viewer_" + document_filename.replace(/\./g, "_");
+    document.getElementById(viewerId).src = linkSource;
+  }
+
+  window.onload = loadDocumentViewer();
+</script>

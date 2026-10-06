@@ -1,6 +1,6 @@
 # coding: latin-1
 ###############################################################################
-# Copyright (c) 2023 European Commission
+# Copyright (c) 2026 European Commission
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,55 +21,57 @@ Application Initialization File:
 Handles application setup, configuration, and exception handling.
 """
 
-import os
-import sys
+import os, sys
 
-from flask import Flask, render_template
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask
 from flask_session import Session
 from flask_cors import CORS
-from app.app_config.config import ConfService
+from app.api.endpoints.auth import routes as auth_routes
+from app.api.endpoints.main import routes as main_routes
+from app.api.endpoints.document import routes as document_routes
+from app.api.endpoints.credentials import routes as credentials_routes
+from app.api.endpoints.relying_party import routes as relying_party_routes
+from app.api.endpoints.dependencies import page_not_found, handle_exception
+from app.core.config import settings
+from app.core.logging import configure_logging
+from app.utils.file_cleanup import delete_old_files
 
 # Extend system path to include the current directory
 sys.path.append(os.path.dirname(__file__))
 
-def handle_exception(e):
-    return (
-        render_template(
-            "500.html",
-            error="Sorry, an internal server error has occurred. Our team has been notified and is working to resolve the issue. Please try again later.",
-            error_code="Internal Server Error",
-        ),
-        500,
+def create_app() -> Flask:
+    configure_logging()
+
+    app = Flask(
+        __name__,
+        instance_relative_config=True,
+        static_url_path='/tester/static'
     )
 
-def page_not_found(e):
-    return (
-        render_template(
-            "500.html",
-            error_code="Page not found",
-            error="Page not found.We're sorry, we couldn't find the page you requested.",
-        ),
-        404,
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(
+        func=lambda: delete_old_files(settings.UPLOAD_FOLDER, max_age_minutes=60),
+        trigger="interval",
+        minutes=720  # run every 12 hours
     )
+    scheduler.start()
 
-def create_app():
-    app = Flask(__name__, instance_relative_config=True, static_url_path='/tester/static')
-    app.config['SECRET_KEY'] = ConfService.secret_key
+    app.config.from_object(settings)
 
-    # Register error handlers
-    app.register_error_handler(404, page_not_found)
-
-    # Register routes
-    from . import (routes)
-    app.register_blueprint(routes.sca)
-
-    # config session
-    app.config["SESSION_FILE_THRESHOLD"] = 50
-    app.config["SESSION_PERMANENT"] = False
-    app.config["SESSION_TYPE"] = "filesystem"
-    app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
     Session(app)
+    CORS(app, supports_credentials=True)
 
-    # CORS is a mechanism implemented by browsers to block requests from domains other than the server's one.
-    CORS(app, supports_credentials=True, resources={r"/tester/*": {"origins": ConfService.AS}})
+    app.register_blueprint(auth_routes.auth_routes)
+    app.register_blueprint(main_routes.base_routes)
+    app.register_blueprint(document_routes.documents_routes)
+    app.register_blueprint(credentials_routes.credentials_routes)
+    app.register_blueprint(relying_party_routes.relying_party_routes)
+    app.register_error_handler(404, page_not_found)
+    app.register_error_handler(Exception, handle_exception)
+
     return app
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run()

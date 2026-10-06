@@ -7,7 +7,7 @@ the [EUDI Wallet Reference Implementation project description](https://github.co
 
 ## Table of Contents
 
-- [EUDI rQES Wallet-Centric Wallet Tester](#eudi-rqes-wallet-centric-wallet-tester)
+- [EUDI rQES Wallet-Centric Wallet Tester](#eudi-rqes-wallet-driven-wallet-tester)
   - [Table of contents](#table-of-contents)
   - [Overview](#overview)
   - [Disclaimer](#disclaimer)

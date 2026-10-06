@@ -1,0 +1,32 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Signed documents</h1>
+  <p>Successfully signed the document.</p>
+</div>
+
+<div>
+<h3>Requested Sign Hashes</h3>
+  <div class="https_request_container">
+    <pre>{{signHash_url}}</pre>
+    <pre>Body: {{signHash_request | tojson(indent=2)}}</pre>
+  </div>
+</div>
+
+<div>
+<h3>Requested Signed Document</h3>
+  <div class="https_request_container">
+    <pre>{{obtain_signed_doc_url}}</pre>
+    <pre>Body: {{obtain_signed_doc_body | tojson(indent=2)}}</pre>
+  </div>
+</div>
+
+{% if document_retrieval %}
+<p>The document was signed and sent to the Relying Party Web Portal.</p>
+{% else %}
+{% for document_content_type, document_signed_value, document_filename in signed_doc %} {% include 'aux_templates/document-signed-single.html' %} {% endfor %}
+{% endif %}
+<div class="right-side-btn-container">
+<a class="btn common-btn primary-btn" href="{{ url_for('credentials.delete_credentials_preview') }}">Delete Certificate</a>
+<a class="btn common-btn primary-btn" href="{{ url_for('index.get_tester_home_page') }}">Close</a>
+</div>
+{% endblock %}

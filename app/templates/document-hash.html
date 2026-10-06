@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block content %}
+<div class="title-container">
+  <h1>Hash calculation and authorization</h1>
+  <p>Hash value was calculated using Signature Creation Application. Select how you'd like to authenticate to sign the hash.</p>
+</div>
+
+<div>
+<h3>Requested Hashes Creation</h3>
+  <div class="https_request_container">
+    <pre>{{hash_create_url}}</pre>
+    <pre>Body: {{hash_create_body | tojson(indent=2)}}</pre>
+  </div>
+</div>
+
+<input type="radio" name="scope" value="credential" checked hidden>
+
+
+{% include 'aux_templates/oauth-authentication-options.html' %}
+
+{% endblock %}
